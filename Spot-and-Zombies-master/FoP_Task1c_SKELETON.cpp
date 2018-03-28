@@ -36,7 +36,7 @@ using namespace std;
 const int  SIZEX(29);    	//horizontal direction
 const int  SIZEY(15);		//vertical direction
 
-//defining symbols used for display of the grid and content
+							//defining symbols used for display of the grid and content
 const char SPOT('@');   	//character representing spot
 const char TUNNEL(' ');    	//character representing the tunnel in the array
 const char WALL('#');    	//character representing the border
@@ -45,18 +45,18 @@ const char PILL('*');		//character representing the pills
 const char ZOMBIE('Z');		//character representubg the zombies
 
 
-//defining the command letters to move the spot on the maze
+							//defining the command letters to move the spot on the maze
 const int  UP(72);			//up arrow
 const int  DOWN(80); 		//down arrow
 const int  RIGHT(77);		//right arrow
 const int  LEFT(75);		//left arrow
 
-							
-//defining the other command letters for the user
+
+							//defining the other command letters for the user
 const char QUIT('Q');		//to end the game
 
 
-//limits
+							//limits
 const int holeLimit = 12;	// amount of holes allowed to be generated in any game
 const int pillLimit = 8;	// amount of pulls allowed to be generated in any game
 const int zombieLimit = 4;
@@ -81,7 +81,7 @@ int main()
 	bool isArrowKey(const int k);
 	int  getKeyPress();
 	void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& mess, int& lives, int& pillCount, Item& pill);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], const Item spot);
+	void updateGrid(char grid[][SIZEX],char maze[][SIZEX], const Item spot);
 	void endProgram();
 
 
@@ -102,7 +102,7 @@ int main()
 	//action...
 	startScreen(); //
 	Seed();															//seed the random number generator
-	SetConsoleTitle("Spot and Zombies Game - FoP 2017-18");
+	//SetConsoleTitle("Spot and Zombies Game - FoP 2017-18");
 	initialiseGame(grid, maze, spot, lives, pillCount, ZOMBIES);	//initialise grid (incl. walls and spot)
 	paintGame(grid, message);										//display game info, modified grid and messages
 	int key;														//current key selected by player
@@ -130,7 +130,7 @@ void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], Item& spot, int& liv
 { //initialise grid and place spot in middle
 	void setInitialMazeStructure(char maze[][SIZEX], vector<char>& ZOMBIES);
 	void setSpotInitialCoordinates(Item& spot);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], Item b);
+	void updateGrid(char grid[][SIZEX], char maze[][SIZEX], const Item spot);
 
 	setInitialMazeStructure(maze, ZOMBIES);		//initialise maze
 	setSpotInitialCoordinates(spot);
@@ -139,7 +139,7 @@ void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], Item& spot, int& liv
 
 void setSpotInitialCoordinates(Item& spot)
 { //set spot coordinates inside the grid at random at beginning of game
-//If Spot spawns on the WALL, it changes direction by one.
+  //If Spot spawns on the WALL, it changes direction by one.
 	if (spot.x == WALL)
 	{
 		spot.x -= 1;
@@ -151,15 +151,15 @@ void setSpotInitialCoordinates(Item& spot)
 	spot.y = Random(SIZEY - 2);      //vertical coordinate in range [1..(SIZEY - 2)]
 	spot.x = Random(SIZEX - 2);      //horizontal coordinate in range [1..(SIZEX - 2)]
 
-	
-} 
+
+}
 
 void setInitialMazeStructure(char maze[][SIZEX], vector<char>& ZOMBIES)
 { //set the position of the walls in the maze
   //initialise maze configuration
 	char initialMaze[SIZEY][SIZEX]; 	//local array to store the maze structure
-	
-	//replaced method of drawing the maze using 2 FOR loops, one nested. Instead of the old method that was used before.
+
+										//replaced method of drawing the maze using 2 FOR loops, one nested. Instead of the old method that was used before.
 	for (int row(0); row < SIZEY; ++row) //for each column
 	{
 		for (int col(0); col < SIZEX; ++col) //for each column
@@ -172,7 +172,7 @@ void setInitialMazeStructure(char maze[][SIZEX], vector<char>& ZOMBIES)
 				else
 					initialMaze[row][col] = TUNNEL;		//Draw TUNNEL symbol
 		}
-	} 
+	}
 
 	//with '#' for wall, ' ' for tunnel, etc. 
 	//copy into maze structure with appropriate symbols
@@ -180,7 +180,7 @@ void setInitialMazeStructure(char maze[][SIZEX], vector<char>& ZOMBIES)
 		for (int col(0); col < SIZEX; ++col)
 			switch (initialMaze[row][col])
 			{
-			//not a direct copy, in case the symbols used change
+				//not a direct copy, in case the symbols used change
 			case '#': maze[row][col] = WALL; break;
 			case ' ': maze[row][col] = TUNNEL; break;
 			}
@@ -241,14 +241,18 @@ void setInitialMazeStructure(char maze[][SIZEX], vector<char>& ZOMBIES)
 //----- update grid state
 //---------------------------------------------------------------------------
 
-void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], const Item spot)
+void updateGrid(char grid[][SIZEX], char maze[][SIZEX],const Item spot)
 { //update grid configuration after each move
 	void setMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item spot);
+	void Collision(const Item spot, char grid[][SIZEX]);
 
 	setMaze(grid, maze);	//reset the empty maze configuration into grid
 	placeItem(grid, spot);	//set spot in grid
-	
+
+	Collision(spot, maze); //CHECKS IF SPOT HAD COLLIDED WITH ANY ITEMS
+
+
 }
 
 void setMaze(char grid[][SIZEX], const char maze[][SIZEX])
@@ -265,6 +269,14 @@ void placeItem(char g[][SIZEX], const Item item)
 	g[item.y][item.x] = item.symbol;
 }
 
+//CHECKS IF SPOT MEETS ANY ITEMS ON THE GRID
+void Collision(const Item spot, char grid[][SIZEX])
+{ 
+	if (grid[spot.y][spot.x] == PILL) //If collided with pill
+	{
+		grid[spot.y][spot.x] = TUNNEL; //Replace with tunnel
+	}
+}
 //---------------------------------------------------------------------------
 //----- move items on the grid
 //---------------------------------------------------------------------------
@@ -278,7 +290,7 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 	//reset message to blank
 	mess = "                                         ";		//reset message to blank
 
-	//calculate direction of movement for given key
+															//calculate direction of movement for given key
 	int dx(0), dy(0);
 	setKeyDirection(key, dx, dy);
 
@@ -305,7 +317,7 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 			lives = lives - 1;
 			mess = "YOU FELL INTO A HOLE... LIVES REMAINING: " + to_string(lives);
 			spot.y += dy;
-			spot.x += dx; 
+			spot.x += dx;
 			break;
 		case PILL:								//in the event the player collides with a pill, increase lives by 1
 			lives = lives + 1;
@@ -319,6 +331,7 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 			spot.y += dy;
 			spot.x += dx;
 			mess = "YOU GOT BITTEN BY A ZOMBIE, OUCHIES!! " + to_string(lives);
+			break;
 		}
 	}
 }
@@ -349,7 +362,7 @@ void setKeyDirection(const int key, int& dx, int& dy)
 		dy = +1;
 		break;
 	}
-	
+
 }
 
 int getKeyPress()
@@ -377,33 +390,33 @@ bool wantsToQuit(const int key)
 //---------------------------------------------------------------------------
 void startScreen()
 {
-	
-			void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string message);
-			showMessage(clDarkGrey, clYellow, 10, 0, ": SPOT AND ZOMBIES :");
-			//SQUAD NAMES AND GROUP NUMBER
-			showMessage(clBlack, clYellow, 55, 10, "GROUP SE1-2017-18");
-			showMessage(clBlack, clWhite, 55, 11, "Stelios");
-			showMessage(clBlack, clWhite, 55, 12, "Dan              ");
-			showMessage(clBlack, clWhite, 55, 13, "Haroon - 28600233");
 
-			//Date and Time is displayed when the application starts it gets current time when the application have started.
-			showMessage(clBlack, clYellow, 55, 0, "DATE: " + GetDate()); //Getting exact date.
-			showMessage(clBlack, clYellow, 55, 1, "TIME: " + GetTime()); //Getting exact time.
+	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string message);
+	showMessage(clDarkGrey, clYellow, 10, 0, ": SPOT AND ZOMBIES :");
+	//SQUAD NAMES AND GROUP NUMBER
+	showMessage(clBlack, clYellow, 55, 10, "GROUP SE1-2017-18");
+	showMessage(clBlack, clWhite, 55, 11, "Stelios");
+	showMessage(clBlack, clWhite, 55, 12, "Dan              ");
+	showMessage(clBlack, clWhite, 55, 13, "Haroon - 28600233");
 
-			//display menu options available
-			showMessage(clBlack, clYellow, 55, 3, "TO MOVE USE KEYBOARD ARROWS ");
-			showMessage(clBlack, clYellow, 55, 4, "TO FREEZE ZOMBIES PRESS 'F' ");
-			showMessage(clBlack, clYellow, 55, 5, "TO KILL ZOMBIES PRESS 'K'   ");
-			showMessage(clBlack, clYellow, 55, 6, "TO QUIT ENTER 'Q'           ");
-			// player enters his name
-			showMessage(clBlack, clGreen, 10, 5, "Please enter your Name: ");
-			getline(cin, Name);
-			while (Name.empty())
-		{
-				showMessage(clBlack, clYellow, 10, 5, "You didn't enter your name, try again : ");
-			getline(cin, Name);
-		}
-			
+	//Date and Time is displayed when the application starts it gets current time when the application have started.
+	showMessage(clBlack, clYellow, 55, 0, "DATE: " + GetDate()); //Getting exact date.
+	showMessage(clBlack, clYellow, 55, 1, "TIME: " + GetTime()); //Getting exact time.
+
+																 //display menu options available
+	showMessage(clBlack, clYellow, 55, 3, "TO MOVE USE KEYBOARD ARROWS ");
+	showMessage(clBlack, clYellow, 55, 4, "TO FREEZE ZOMBIES PRESS 'F' ");
+	showMessage(clBlack, clYellow, 55, 5, "TO KILL ZOMBIES PRESS 'K'   ");
+	showMessage(clBlack, clYellow, 55, 6, "TO QUIT ENTER 'Q'           ");
+	// player enters his name
+	showMessage(clBlack, clGreen, 10, 5, "Please enter your Name: ");
+	getline(cin, Name);
+	while (Name.empty())
+	{
+		showMessage(clBlack, clYellow, 10, 5, "You didn't enter your name, try again : ");
+		getline(cin, Name);
+	}
+
 }
 string tostring(int x)
 {	//convert an integer to a string
@@ -423,7 +436,7 @@ void paintGame(const char g[][SIZEX], string mess)
 { //display game title, messages, maze, spot and other items on screen
 	string tostring(char x);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string message);
-	
+
 	void paintGrid(const char g[][SIZEX]);
 
 
@@ -432,8 +445,8 @@ void paintGame(const char g[][SIZEX], string mess)
 	//Date and Time is displayed when the application starts it gets current time when the application have started.
 	showMessage(clDarkGrey, clYellow, 55, 0, "DATE: " + GetDate()); //Getting exact date.
 	showMessage(clDarkGrey, clYellow, 55, 1, "TIME: " + GetTime()); //Getting exact time.
-									  
-	//display menu options available
+
+																	//display menu options available
 	showMessage(clDarkGrey, clYellow, 55, 3, "TO MOVE USE KEYBOARD ARROWS ");
 	showMessage(clDarkGrey, clYellow, 55, 4, "TO FREEZE ZOMBIES PRESS 'F' ");
 	showMessage(clDarkGrey, clYellow, 55, 5, "TO KILL ZOMBIES PRESS 'K'   ");
@@ -444,8 +457,8 @@ void paintGame(const char g[][SIZEX], string mess)
 	//print auxiliary messages if any
 	showMessage(clBlack, clWhite, 40, 8, mess);	//display current message
 
-	
-	//display grid contents
+
+												//display grid contents
 	paintGrid(g);
 }
 void paintGrid(const char g[][SIZEX])
@@ -464,7 +477,7 @@ void paintGrid(const char g[][SIZEX])
 void endProgram()
 {
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string message);
-	showMessage(clRed, clYellow, 40, 8, "");	
+	showMessage(clRed, clYellow, 40, 8, "");
 	system("pause");	//hold output screen until a keyboard key is hit
 }
 

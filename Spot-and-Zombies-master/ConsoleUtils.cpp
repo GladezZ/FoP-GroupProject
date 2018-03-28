@@ -21,7 +21,7 @@ void Clrscr()
 {
 	//from web-site
 	COORD coordScreen = { 0, 0 }; 
-	DWORD cCharsWritten; 
+	DWORD cCharsWritten;  
 	CONSOLE_SCREEN_BUFFER_INFO csbi; 
 	DWORD dwConSize; 
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
